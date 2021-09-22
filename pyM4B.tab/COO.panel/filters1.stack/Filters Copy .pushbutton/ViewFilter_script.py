@@ -1,5 +1,6 @@
 # Author:	Giuseppe Dotto
 
+__doc__ = "Copy one or more View Filters from a view/template to multiple ones."
 
 from pyrevit import revit, DB, script
 from pyrevit import PyRevitException, PyRevitIOError
