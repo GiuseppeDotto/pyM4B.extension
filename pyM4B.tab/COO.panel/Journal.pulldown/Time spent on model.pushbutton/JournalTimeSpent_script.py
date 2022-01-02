@@ -78,7 +78,7 @@ if proj_name:
 	
 	print('\nTOTAL TIME:\n{}'.format(total_time))
 	
-	print( '\nDAILY ANALYSIS:' )
+	print( '\nTIME PER REVIT SESSION:' )
 	for d, t in zip(days, out):
 		print('{} : {}'.format(d, t))
 
