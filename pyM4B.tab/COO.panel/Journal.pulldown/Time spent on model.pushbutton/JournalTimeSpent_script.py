@@ -6,14 +6,11 @@ __doc__ =	"Snoop through all the existent Journal files, looking for the operati
 
 import os
 from datetime import datetime
-from pyrevit import revit, DB, script
-from pyrevit import PyRevitException, PyRevitIOError
+from pyrevit import revit
 
-from pyrevit import forms
 from rpw.ui.forms import (FlexForm, Label, TextBox,
 							Separator, Button)
 
-from System.Collections.Generic import List
 
 doc = revit.doc
 
@@ -82,3 +79,4 @@ if proj_name:
 	for d, t in zip(days, out):
 		print('{} : {}'.format(d, t))
 
+	print( "\n\nREMEMBER: Journal files collect data from users' Revit sessions on this computer, not from project's files." )
