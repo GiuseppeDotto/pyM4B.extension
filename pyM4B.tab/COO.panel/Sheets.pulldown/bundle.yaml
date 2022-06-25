@@ -1,8 +1,11 @@
 layout:
   - Align Viewports
   - Place Multiple Views
-  - Delete Sheets
+  - Viewports BringToFront
+  - -----
   - Manage Revisions
   - -----
   - Used TitleBlocks
   - Replace TitleBlocks
+  - -----
+  - Delete Sheets
