@@ -62,13 +62,9 @@ def bend_tag_elbow(tag, angle):
 	tag.SetLeaderElbow( ref_tagged, DB.XYZ(0, new_y, new_z) )
 
 
-edited = 0
 with revit.Transaction('Change Tags angle'):
 	for tag in sel_tags:
 		bend_tag_elbow(tag, angle)
-		edited += 1
-	
-forms.alert('{} tags edit.'.format(edited), warn_icon=False)
 
 
 
