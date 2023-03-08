@@ -27,8 +27,8 @@ for root, dirs, files in os.walk(revit.get_journals_folder()):
 
 				for n, row in enumerate(data):
 					if trigger in row:
-						proj_name = row[row.index('[')+1 : row.index(']')]
-						view_name = row[row.index(', "')+3 : -3]
+						proj_name = row.split('"')[1]
+						view_name = row.split('"')[3]
 
 						out.add( (u_name,
 								proj_name,
