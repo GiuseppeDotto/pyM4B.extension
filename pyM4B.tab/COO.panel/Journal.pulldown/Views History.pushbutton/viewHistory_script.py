@@ -1,11 +1,14 @@
 
+__doc__ = 'Create a report of all the used Revit view reading information from the journal files.\n'\
+		'The information is stored in CSV format with a martrix whose columns are "USER, PROJECT, VIEW, DATE-TIME".'
+
 from pyrevit import revit, forms, HOST_APP
 import os
 # import datetime
 
 u_name = HOST_APP.username
 # trigger = 'Jrn.Browser "LButtonDblClk"'
-trigger = "Jrn.Activate "
+trigger = "Jrn.Close "
 
 
 def get_time(s):
@@ -39,9 +42,16 @@ for root, dirs, files in os.walk(revit.get_journals_folder()):
 
 # WRITE CSV FILE
 import csv
+import datetime
 
-to_write = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-						'views usage.csv')
+now = datetime.datetime.today()
+# to_write = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+# 						'views usage.csv')
+
+dir_path = forms.pick_folder(title='Folder where to save Views History')
+to_write = os.path.join(dir_path, 'pyM4B_ViewsHistory.csv')
+
+			
 if os.path.exists(to_write):
 	with open(to_write, 'r') as csvfile:
 		reader = csv.reader(csvfile)
@@ -56,4 +66,4 @@ with open(to_write, 'wb') as csvfile:
 	writer.writerows(out)
 
 
-forms.alert('has been a wanderful adventure!')
+forms.alert('View History successfully created!')
