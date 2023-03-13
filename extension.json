@@ -1,14 +1,14 @@
 {
-	"builtin": "False",
-	"default_enabled": "True",
-	"type": "extension",
-	"rocket_mode_compatible": "True",
-	"name": "pyM4B",
-	"description": "Macro4BIM extension for PyRevit",
-	"author": "Giuseppe Dotto",
-	"author_profile": "https://github.com/GiuseppeDotto",
-	"url": "https://github.com/GiuseppeDotto/pyM4B.extension.git",
-	"website": "https://www.macro4bim.com/",
-	"image": "",
-	"dependencies": []
+  "builtin": "False",
+  "default_enabled": "True",
+  "type": "extension",
+  "rocket_mode_compatible": "True",
+  "name": "pyM4B",
+  "description": "Macro4BIM extension for PyRevit",
+  "author": "Giuseppe Dotto",
+  "author_profile": "https://github.com/GiuseppeDotto",
+  "url": "https://github.com/GiuseppeDotto/pyM4B.extension.git",
+  "website": "https://www.macro4bim.com/",
+  "image": "",
+  "dependencies": []
 }
