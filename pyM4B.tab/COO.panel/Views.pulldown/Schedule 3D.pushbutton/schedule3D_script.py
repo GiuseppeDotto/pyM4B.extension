@@ -1,8 +1,6 @@
 # Author:	Giuseppe Dotto
 
-__doc__ =	"Duplicate with or without detail the selected views"\
-			"and their Dependent views. In this last case, it will be checked if a scopebox"\
-			"has been asigned to the dependent views, so to apply the same to the new views."
+__doc__ =	"Create a 3D View showing all the element listed in the given schedule."
 
 from sched import scheduler
 from pyrevit import revit, DB, UI
