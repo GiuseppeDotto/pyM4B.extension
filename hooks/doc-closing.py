@@ -3,19 +3,27 @@ from pyrevit import revit, forms, HOST_APP
 import os
 import datetime
 
-import DB
+# import DB
 
 doc = revit.doc
 title = doc.Title
 
 if 'ATA_SAN_' in title:
-	u_name = HOST_APP.username
+	directory_a = os.path.dirname(doc.PathName)
 
-	name = '{} - {}.txt'.format(u_name,  datetime.datetime.today())
+	deleted = 0
+	deleted_name = []
+	for dirpath, dirnames, filenames in os.walk(directory_a):
+		for f in filenames:
+			if '! - ' in f:
+				deleted_name.append(f)
+				full_name = os.path.join(dirpath, f)
+				os.remove(full_name)
+				deleted += 1
+		break
 
-	directory_a = doc.PathName
-	directory_b = os.path.pardir( __file__ )
-
-	msg = '{}\n{}\n{}'.format(title, name, directory_a, directory_b)
-
-	forms.alert( msg, warn_icon=False )
+	if deleted == 1:
+		forms.alert( '{} file(s) deleted'.format(deleted), sub_msg=str(deleted_name), warn_icon=False )
+	else:
+		forms.alert( '{} file(s) deleted\nCOORDINATE WITH THE TEAM!'.format(deleted), sub_msg=str(deleted_name), warn_icon=True )
+		
