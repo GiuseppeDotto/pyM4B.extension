@@ -11,7 +11,7 @@ title = doc.Title
 if 'ATA_SAN_' in title:
 	u_name = HOST_APP.username
 
-	name = '! - {} - {}.txt'.format(u_name,  datetime.datetime.today().strftime('%y%m%d %H-%M-%S'))
+	name = '! - {} - {} - {}.txt'.format(title, u_name, datetime.datetime.today().strftime('%y%m%d %H-%M-%S'))
 
 	directory_a = os.path.dirname(doc.PathName)
 	directory_b = os.path.dirname(__file__ )
@@ -20,7 +20,7 @@ if 'ATA_SAN_' in title:
 	# CHECK YOU ARE THE ONLY ONE
 	for dirpath, dirnames, filenames in os.walk(directory_a):
 		for f in filenames:
-			if '! - ' in f:
+			if '! - '+title in f:
 				forms.alert('CLOSE THE FILE!\nANOTHER USER HAS IT OPEN.', warn_icon=True, exitscript=True)
 		break
 
