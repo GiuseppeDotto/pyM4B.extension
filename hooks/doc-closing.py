@@ -8,7 +8,7 @@ import datetime
 doc = revit.doc
 title = doc.Title
 
-if 'ATA_SAN_' in title:
+if 'ATA_ISSB_' in title:
 	directory_a = os.path.dirname(doc.PathName)
 
 	deleted = 0

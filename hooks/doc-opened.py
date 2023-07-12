@@ -8,7 +8,7 @@ import datetime
 doc = revit.doc
 title = doc.Title
 
-if 'ATA_SAN_' in title:
+if 'ATA_ISSB_' in title:
 	u_name = HOST_APP.username
 
 	name = '! - {} - {} - {}.txt'.format(title, u_name, datetime.datetime.today().strftime('%y%m%d %H-%M-%S'))
