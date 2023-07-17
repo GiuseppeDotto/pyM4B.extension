@@ -41,7 +41,7 @@ views = forms.select_views(filterfunc=duplicableview, use_selection=True)
 if views:
 
 	#vw.GetDependentViewIds()
-	contexts = ["Duplicate", "WithDetailing", "Duplicate & Dependent", "WithDetailing & Dependent"]
+	contexts = ["Duplicate", "WithDetailing", "Duplicate As Dependent"]
 	qry = forms.CommandSwitchWindow.show(contexts, message='Select Option')
 	if not qry:	script.Close()
 
@@ -99,10 +99,10 @@ if views:
 				if form.values["checkbox3"]:
 					new_vw.LookupParameter(form.values["combobox1"]).Set(form.values["textbox2"])
 				
-	elif qry == "Duplicate & Dependent":
-		with revit.Transaction('duplicate views and dependent'):
+	elif qry == "Duplicate As Dependent":
+		with revit.Transaction('duplicate views as dependent'):
 			for vw in views:
-				new_vw_id = vw.Duplicate(dup)
+				new_vw_id = vw.Duplicate(aDep)
 				new_vw = doc.GetElement(new_vw_id)
 				nm = new_vw.Parameter[BIP.VIEW_NAME].AsString()
 				# TRY RENAME
@@ -113,35 +113,4 @@ if views:
 				# REPLACE PARAMETER
 				if form.values["checkbox3"]:
 					new_vw.LookupParameter(form.values["combobox1"]).Set(form.values["textbox2"])
-				# CREATE DEPENDING VIEWS
-				dependents = [doc.GetElement(i) for i in vw.GetDependentViewIds()]
-				for d in dependents:
-					new_Dep_id = new_vw.Duplicate(aDep)
-					new_Dep = doc.GetElement(new_Dep_id)
-					# Check for assigned ScopeBox
-					scopeB = d.Parameter[BIP.VIEWER_VOLUME_OF_INTEREST_CROP].AsElementId()
-					new_Dep.Parameter[BIP.VIEWER_VOLUME_OF_INTEREST_CROP].Set(scopeB)
-					
-	elif qry == "WithDetailing & Dependent":
-		with revit.Transaction('duplicate views and dependent'):
-			for vw in views:
-				new_vw_id = vw.Duplicate(wDet)
-				new_vw = doc.GetElement(new_vw_id)
-				nm = new_vw.Parameter[BIP.VIEW_NAME].AsString()
-				# TRY RENAME
-				try_renaming(new_vw, nm, prefix, form.values["checkbox1"], form.values["checkbox2"])
-				# REMOVE TEMPLATE
-				if form.values["checkboxVT"]:
-					new_vw.ViewTemplateId = DB.ElementId.InvalidElementId
-				# REPLACE PARAMETER
-				if form.values["checkbox3"]:
-					new_vw.LookupParameter(form.values["combobox1"]).Set(form.values["textbox2"])
-				# CREATE DEPENDING VIEWS
-				dependents = [doc.GetElement(i) for i in vw.GetDependentViewIds()]
-				for d in dependents:
-					new_Dep_id = new_vw.Duplicate(aDep)
-					new_Dep = doc.GetElement(new_Dep_id)
-					# Check for assigned ScopeBox
-					scopeB = d.Parameter[BIP.VIEWER_VOLUME_OF_INTEREST_CROP].AsElementId()
-					new_Dep.Parameter[BIP.VIEWER_VOLUME_OF_INTEREST_CROP].Set(scopeB)
 

@@ -1,0 +1,12 @@
+
+tooltip: "Create a dimension picking all the Wall and Curtain Wall Panel faces intersecting the given detail line.
+
+      In order for the tool find the reference faces, a 3D View containing the interested elements must be provided.
+
+      SHIFT-CLICK: Also element non perpendicular to the Line will be dimensioned by creating a new Detail Line
+			in the current view and letting the dimension reference to that."
+
+title: >-
+  Create
+
+  Dimensions ●

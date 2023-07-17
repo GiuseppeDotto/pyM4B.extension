@@ -1,6 +1,8 @@
 layout:
-  - room1
+  - Room Action
   - Room Analysis
   - -----
   - Level Based
   - Tags
+  - -----
+  - Auto-Legend
