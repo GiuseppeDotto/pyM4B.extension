@@ -18,6 +18,8 @@ if not link:	script.exit()
 link_doc = link.GetLinkDocument()
 
 linked_views = DB.FilteredElementCollector(link_doc).OfCategory(DB.BuiltInCategory.OST_Views).WhereElementIsNotElementType()
+if not linked_views:	script.exit()
+
 linked_views = [v for v in linked_views if not v.IsTemplate]
 
 linked_views.sort(key=lambda v: v.Name)
