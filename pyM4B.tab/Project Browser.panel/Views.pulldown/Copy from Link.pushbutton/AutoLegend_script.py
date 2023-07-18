@@ -12,7 +12,7 @@ from pyrevit import DB, revit, forms, script
 
 doc = revit.doc
 
-with forms.WarningBar(title='SELECT LEGEND COMPONENT'):
+with forms.WarningBar(title='SELECT REVIT LINK'):
 	link = revit.pick_element_by_category(DB.BuiltInCategory.OST_RvtLinks)
 if not link:	script.exit()
 link_doc = link.GetLinkDocument()

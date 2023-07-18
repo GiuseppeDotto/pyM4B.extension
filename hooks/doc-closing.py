@@ -9,6 +9,9 @@ doc = revit.doc
 title = doc.Title
 
 if 'ATA_ISSB_' in title:
+	u_name = HOST_APP.username
+	search = '! - {} - {} - '.format(title, u_name)
+	
 	directory_a = os.path.dirname(doc.PathName)
 
 	deleted = 0
