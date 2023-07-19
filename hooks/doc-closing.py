@@ -1,7 +1,6 @@
 
-from pyrevit import revit, forms, HOST_APP
 import os
-import datetime
+from pyrevit import HOST_APP, forms, revit
 
 # import DB
 
