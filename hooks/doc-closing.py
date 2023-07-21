@@ -17,7 +17,7 @@ if 'ATA_ISSB_' in title:
 	deleted_name = []
 	for dirpath, dirnames, filenames in os.walk(directory_a):
 		for f in filenames:
-			if '! - ' in f:
+			if search in f:
 				deleted_name.append(f)
 				full_name = os.path.join(dirpath, f)
 				os.remove(full_name)
