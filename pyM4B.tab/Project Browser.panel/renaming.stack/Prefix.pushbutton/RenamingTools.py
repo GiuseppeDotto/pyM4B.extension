@@ -6,7 +6,7 @@ from pyrevit import revit, DB
 accepted_classes = [DB.WallType, DB.FloorType,
 					DB.CeilingType, DB.RoofType,
 					DB.SlabEdgeType]
-views_classes = [DB.ViewPlan, DB.ViewSection, DB.View3D]
+views_classes = [DB.ViewPlan, DB.ViewSection, DB.View3D, DB.ViewDrafting, DB.ViewSchedule]
 
 def get_family(elem):
 

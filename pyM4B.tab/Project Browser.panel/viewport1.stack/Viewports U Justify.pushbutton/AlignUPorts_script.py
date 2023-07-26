@@ -4,12 +4,7 @@ __doc__ =	"Horizonatally justify a set of viewports."
 
 from pyrevit import revit, DB
 from pyrevit import PyRevitException, PyRevitIOError
-
-
-def double_range(start, end, nr):
-	increment = (float(end)-start) / (nr-1)
-	for n in range(nr):
-		yield start + increment*n
+# import DB
 
 
 BIC = DB.BuiltInCategory
@@ -18,14 +13,23 @@ BIC = DB.BuiltInCategory
 selected_viewports = revit.pick_elements_by_category(BIC.OST_Viewports, 'Pick Viewports to align')
 
 # SORT VIEWPORTS
-sorted_viewports = sorted([[vp.GetBoxCenter().X, vp] for vp in selected_viewports])
-sorted_viewports = zip(*sorted_viewports)
+selected_viewports.sort(key=lambda v:v.GetBoxCenter().X)
+total_span = selected_viewports[-1].GetBoxOutline().MaximumPoint.X\
+			- selected_viewports[0].GetBoxOutline().MinimumPoint.X
+v_width = lambda v: v.GetBoxOutline().MaximumPoint.X - v.GetBoxOutline().MinimumPoint.X
 
-xs = sorted_viewports[0]
-viewports = sorted_viewports[1]
+gap = (total_span-sum([v_width(v) for v in selected_viewports])) / (len(selected_viewports)-1)
+
+new_positions = []
+for n, v in enumerate(selected_viewports):
+	if n == 0:
+		new_positions.append(v.GetBoxCenter())
+	else:
+		new_x = new_positions[-1].X + v_width(selected_viewports[n-1])/2 + v_width(v)/2 + gap
+		new_positions.append( DB.XYZ(new_x, v.GetBoxCenter().Y, v.GetBoxCenter().Z) )
 
 # MOVE
 with revit.Transaction("Viewports vertical justication"):
-	for vp, new_x in zip(viewports, double_range(xs[0], xs[-1], len(xs))):
-		vp.SetBoxCenter( DB.XYZ(new_x, vp.GetBoxCenter().Y, vp.GetBoxCenter().Z) )
+	for v, pt in zip(selected_viewports, new_positions):
+		v.SetBoxCenter(pt)
 
