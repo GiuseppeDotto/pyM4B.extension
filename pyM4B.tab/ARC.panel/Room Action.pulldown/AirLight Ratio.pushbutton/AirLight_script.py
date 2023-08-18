@@ -12,10 +12,11 @@ doc = revit.doc
 # FUNCTION FOR COLLECTING WINDOWS/CWPL IN ROOMS
 BIC = DB.BuiltInCategory
 cat_fltr = DB.ElementMulticategoryFilter( List[BIC]([BIC.OST_Windows, BIC.OST_CurtainWallPanels]) )
-def get_nearby(r):
+def get_nearby(r, wndw_types):
     bb = r.get_BoundingBox(None)
     bb_flt = DB.BoundingBoxIntersectsFilter( DB.Outline(bb.Min, bb.Max), 3 )
-    return  DB.FilteredElementCollector(doc).WherePasses(cat_fltr).WherePasses(bb_flt).WhereElementIsNotElementType()
+    wnwds = DB.FilteredElementCollector(doc).WherePasses(cat_fltr).WherePasses(bb_flt).WhereElementIsNotElementType()
+    return [w for w in wnwds if w.GetTypeId() not in wndw_types] 
 
 def get_wndwArea(r, wndw):
     """
@@ -41,11 +42,21 @@ else:
     rooms = revit.pick_elements_by_category(DB.BuiltInCategory.OST_Rooms, 'Pick Rooms to analyze')
 forms.alert_ifnot(rooms, 'No Rooms selected.', exitscript=True)
 
+# SELECT WINDOW TYPE USEFUL TO GENERATE AIR-LIGHT RATIO
+wndw_types = DB.FilteredElementCollector(doc).WherePasses(cat_fltr).WhereElementIsNotElementType()
+wndw_types = [doc.GetElement(w.GetTypeOd()) for w in wndw_types]
+wndw_types = forms.SelectFromList.show(wndw_types,
+                                    multiselect=True,
+                                    name_attr='Name',
+                                    button_name='Select Useful Windows/CWall Panels')
+forms.alert_ifnot(wndw_types, 'No Windows/Curtain Panel selected.', exitscript=True)
+wndw_types = [w.Id for w in wndw_types]
+
 # CALCULATE AIR-LIGHT RATIO
 out = []
 room_name = lambda r: r.Number + ': ' + r.get_Parameter(DB.BuiltInParameter.ROOM_NAME).AsString()
 for r in rooms:
-    wndw_area = sum( [get_wndwArea(r, wndw) for wndw in get_nearby(r)] )
+    wndw_area = sum( [get_wndwArea(r, wndw) for wndw in get_nearby(r, wndw_types)] )
     if wndw_area > 0:
         value = round(wndw_area/r.Area, 3)
         out.append([room_name(r), value])
