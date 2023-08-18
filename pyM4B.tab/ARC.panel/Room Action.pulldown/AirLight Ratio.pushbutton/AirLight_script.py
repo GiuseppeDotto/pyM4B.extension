@@ -47,7 +47,7 @@ room_name = lambda r: r.Number + ': ' + r.get_Parameter(DB.BuiltInParameter.ROOM
 for r in rooms:
     wndw_area = sum( [get_wndwArea(r, wndw) for wndw in get_nearby(r)] )
     if wndw_area > 0:
-        value = round(r.Area/wndw_area, 2)
+        value = round(wndw_area/r.Area, 2)
         out.append([room_name(r), value])
     else:
         out.append([room_name(r), '-'])
