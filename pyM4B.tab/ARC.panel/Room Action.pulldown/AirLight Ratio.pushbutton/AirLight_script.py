@@ -1,5 +1,5 @@
 
-__doc__ = 'The tool is for automatically calculate the ration RoomArea/WindowArea'\
+__doc__ = 'The tool is for automatically calculate the ration WindowArea/RoomArea'\
         " taking in consideration also the Curtain Wall Panels and storing the value in the room's selected parameter"
 
 from System.Collections.Generic import List
@@ -47,11 +47,12 @@ room_name = lambda r: r.Number + ': ' + r.get_Parameter(DB.BuiltInParameter.ROOM
 for r in rooms:
     wndw_area = sum( [get_wndwArea(r, wndw) for wndw in get_nearby(r)] )
     if wndw_area > 0:
-        value = round(wndw_area/r.Area, 2)
+        value = round(wndw_area/r.Area, 3)
         out.append([room_name(r), value])
     else:
         out.append([room_name(r), '-'])
 
 output.print_table(table_data=sorted(out), columns=['ROOM', 'AIR-LIGHT RATIO'], title='OVERALL AIR-LIGHT RATIO')
+print('\nThe AirLight ration should be at least equal to 1/8 ({}), or 1/10 ({}) in exceptional cases'.format(round(1.0/8, 3), round(1.0/10, 3)))
 
 
