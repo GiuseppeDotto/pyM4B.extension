@@ -113,4 +113,4 @@ if input('\n\nSET ROOMS PARAMETER WITH THE ABOVE VALUE? [Y/N]'):
 	print('You can now close this window.')
 
 else:
-	print('not recognized input. Please type "Y" if you want to set the parameters.`')
+	print('\ninput not recognized.\nPlease type "Y" if you want to set the parameters.')
