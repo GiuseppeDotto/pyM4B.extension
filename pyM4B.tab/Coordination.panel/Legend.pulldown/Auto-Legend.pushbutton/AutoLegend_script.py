@@ -28,7 +28,8 @@ def get_layers(legend_component):
 	return all_width, materials_id
 
 def create_dimension_horizontal(legend_component, widths, horizontal=True):
-	if horizontal:
+ if not widths: return None
+ if horizontal:
 		bb = legend_component.get_BoundingBox(vw)
 		base = bb.Min
 		tot_len = bb.Max.X - bb.Min.X
