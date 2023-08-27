@@ -45,8 +45,8 @@ def create_dimension_horizontal(legend_component, widths, horizontal=True):
 	ref_array_total = DB.ReferenceArray()
 
 	ref_array_total.Append(DB.Reference(dt_crv))
-  ref_array = DB.ReferenceArray()
-  ref_array.Append(DB.Reference(dt_crv))
+	ref_array = DB.ReferenceArray()
+	ref_array.Append(DB.Reference(dt_crv))
 	progression = 0
 	for w in widths:
 		progression += w
