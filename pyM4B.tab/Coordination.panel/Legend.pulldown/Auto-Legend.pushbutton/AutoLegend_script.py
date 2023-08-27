@@ -28,26 +28,26 @@ def get_layers(legend_component):
 	return all_width, materials_id
 
 def create_dimension_horizontal(legend_component, widths, horizontal=True):
- 	if not widths: return None
-  if horizontal:
-    bb = legend_component.get_BoundingBox(vw)
-    base = bb.Min
-    tot_len = bb.Max.X - bb.Min.X
-    vec = DB.XYZ(0,1,0)
-    ln_base = DB.Line.CreateBound(base, base.Add(DB.XYZ(0.1,0,0)))
-  else:
-    bb = legend_component.get_BoundingBox(vw)
-    base = bb.Min
-    tot_len = bb.Max.Y - bb.Min.Y
-    vec = DB.XYZ(1,0,0)
-    ln_base = DB.Line.CreateBound(base, base.Add(DB.XYZ(0,0.1,0)))
-  dt_crv = doc.Create.NewDetailCurve(vw, ln_base)
-  ref_array_total = DB.ReferenceArray()
+	if not widths: return None
+	if horizontal:
+		bb = legend_component.get_BoundingBox(vw)
+		base = bb.Min
+		tot_len = bb.Max.X - bb.Min.X
+		vec = DB.XYZ(0,1,0)
+		ln_base = DB.Line.CreateBound(base, base.Add(DB.XYZ(0.1,0,0)))
+	else:
+		bb = legend_component.get_BoundingBox(vw)
+		base = bb.Min
+		tot_len = bb.Max.Y - bb.Min.Y
+		vec = DB.XYZ(1,0,0)
+		ln_base = DB.Line.CreateBound(base, base.Add(DB.XYZ(0,0.1,0)))
+	dt_crv = doc.Create.NewDetailCurve(vw, ln_base)
+	ref_array_total = DB.ReferenceArray()
 
-  ref_array_total.Append(DB.Reference(dt_crv))
+	ref_array_total.Append(DB.Reference(dt_crv))
   ref_array = DB.ReferenceArray()
   ref_array.Append(DB.Reference(dt_crv))
-  progression = 0
+	progression = 0
 	for w in widths:
 		progression += w
 		new_crv = DB.ElementTransformUtils.CopyElement(doc, dt_crv.Id, vec.Multiply(progression))
