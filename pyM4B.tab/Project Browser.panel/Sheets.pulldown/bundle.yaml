@@ -1,7 +1,9 @@
 layout:
-  - Align Viewports
-  - Place Multiple Views
+  - Viewports Align
   - Viewports BringToFront
+  - Viewport Justify
+  - Viewport U Justify
+  - Viewport V Justify
   - -----
   - Manage Revisions
   - -----

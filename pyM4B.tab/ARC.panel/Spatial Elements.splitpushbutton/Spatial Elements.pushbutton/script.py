@@ -1,5 +1,5 @@
 
-__title__ = "Room\nTemporaryView"
+__title__ = 'Spatial\nElements'
 __doc__ = "Enable Temporary View Properties and then turn ON visibility for "\
 			"Rooms, Areas and its sub-categories, including Separators Lines.\n"\
 			"SHIFT-CLICK: Isolate the above mentioned categories."

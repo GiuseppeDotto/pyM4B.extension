@@ -1,8 +1,4 @@
 layout:
-  - renaming
-  - -----
   - Views
-  - filters1
-  - -----
+  - Filters
   - Sheets
-  - viewport1
