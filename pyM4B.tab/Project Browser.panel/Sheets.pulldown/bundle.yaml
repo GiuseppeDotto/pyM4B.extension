@@ -1,9 +1,9 @@
 layout:
   - Viewports Align
   - Viewports BringToFront
-  - Viewport Justify
-  - Viewport U Justify
-  - Viewport V Justify
+  - Viewports Justify
+  - Viewports U Justify
+  - Viewports V Justify
   - -----
   - Manage Revisions
   - -----
