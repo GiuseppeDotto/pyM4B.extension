@@ -4,9 +4,9 @@ import os
 def rename_nested(folder, suffix, enum, add=True):
     """
     Order to follow to solve the case-sensitive issue:
-        1. run the function
+        1. run the function with add=True
         2. commit the changes
-        3. run again the function
+        3. run the function with add=False
         4. commit for the last time
 
     Args:
@@ -31,5 +31,5 @@ enum = 0
 suffix = '-----'
 
 # rename_nested(folder, suffix, enum)
-rename_nested(folder, suffix, enum, False)
+rename_nested(folder, suffix, enum, add=False)
 print(f'{enum} folders renamed successfully.')
