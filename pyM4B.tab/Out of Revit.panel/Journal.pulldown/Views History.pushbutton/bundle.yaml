@@ -1,0 +1,13 @@
+context: zero-doc
+
+tooltip:
+  Create a report of all the used Revit view from this account.
+  
+  The information are collected from the journal files and than 
+  stored in CSV format with a martrix whose columns are "USER, PROJECT, VIEW, DATE-TIME".
+
+
+  The function fill ask for a folder location where "pyM4B_ViewsHistory.csv" will be created 
+  or updated in the case an older version is already existing.
+
+highlight: updated

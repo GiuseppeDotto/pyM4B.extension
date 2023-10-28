@@ -1,6 +1,4 @@
 
-__title__ = "Grid Lines"
-
 __doc__ =	"Make current the grids representation shorter by the input length."
 
 

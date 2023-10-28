@@ -1,6 +1,4 @@
 
-__title__ = "Grid Lines"
-
 __doc__ =	"Align the 2D representation of the selected Grids in multiple view."
 
 

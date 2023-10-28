@@ -1,0 +1,22 @@
+title:
+  Legend
+
+  Components
+
+context: active-legend
+
+tooltip:
+  Auto generate one legend component per used element type.
+  
+  The category of the new Legend Compoenets is the same of the 
+  component selected at the beginnin of the script.
+  
+
+  Additionally, is possible to select a TextNote that, 
+  if contains a Parameter Name, will be repeated per each new component and 
+  the text replaced with the interested parameter value.
+
+# bundle help url
+help_url: "coming soon"
+
+highlight: new

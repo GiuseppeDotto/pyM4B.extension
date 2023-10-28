@@ -1,0 +1,9 @@
+context: zero-doc
+
+tooltip: 
+  Deactivate from the Revit.ini setting file 
+  the function introduced with Revit 2023 for which, 
+  moving a Room, its associated Tag doesn't move and create a Leader instead.
+
+# bundle help url
+help_url: "https://www.macro4bim.com/post/automatic-room-tag-leaders"
