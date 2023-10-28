@@ -61,6 +61,15 @@ def create_dimension_horizontal(legend_component, widths, horizontal=True):
 	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,-1)).Multiply(tot_len+0.5)), vec)
 	doc.Create.NewDimension(vw, dim_ln, ref_array_total)
 
+def value_from_txt(e_type):
+	par = doc.GetElement(e_type).LookupParameter(par_name)
+	if par and par.StorageType == DB.StorageType.String:
+		return par.AsString()
+	elif par:
+		return par.AsValueString()
+	else:
+		return '---'
+
 # SET USER INPUT
 phases = DB.FilteredElementCollector(doc).OfClass(DB.Phase)
 phases = dict( [[p.Name, p.Id] for p in phases] )
@@ -96,8 +105,9 @@ elems = set([e.GetTypeId() for e in elems])
 elems = set( [e for e in elems if 'curtain' not in doc.GetElement(e).FamilyName.lower()] )
 # DEFINE FIXED TRANSLATION
 translation = legend.get_BoundingBox(vw)
+tag_position = m_tag.get_BoundingBox(vw)
 pt_base = translation.Min
-translation = (translation.Max.X - translation.Min.X)*2
+translation = (tag_position.Max.X - translation.Min.X)*2
 
 amount = len(elems)
 with revit.TransactionGroup('Automatic Legend'):
@@ -150,4 +160,6 @@ with revit.TransactionGroup('Automatic Legend'):
 			vec = bb.Min.Subtract(pt_base)
 			new_txt = DB.ElementTransformUtils.CopyElement(doc, id_text.Id, vec)
 			new_txt = doc.GetElement(new_txt[0])
-			new_txt.Text = str(doc.GetElement(e_type).LookupParameter(par_name).AsValueString())
+			new_txt.Text = str(value_from_txt(e_type))
+
+script.get_output().close()
