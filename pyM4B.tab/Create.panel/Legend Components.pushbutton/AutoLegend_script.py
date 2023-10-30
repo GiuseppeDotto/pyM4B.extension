@@ -4,7 +4,7 @@
 
 from pyrevit import script, forms, revit, DB
 from rpw.ui.forms import FlexForm, Label, ComboBox, Separator, Button
-# import DB
+import DB
 
 doc = revit.doc
 vw = doc.ActiveView
@@ -61,8 +61,7 @@ def create_dimension_horizontal(legend_component, widths, horizontal=True):
 	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,-1)).Multiply(tot_len+0.5)), vec)
 	doc.Create.NewDimension(vw, dim_ln, ref_array_total)
 
-def value_from_txt(e_type):
-	par = doc.GetElement(e_type).LookupParameter(par_name)
+def get_value(par):
 	if par and par.StorageType == DB.StorageType.String:
 		return par.AsString()
 	elif par:
@@ -70,31 +69,33 @@ def value_from_txt(e_type):
 	else:
 		return '---'
 
-# SET USER INPUT
+def define_text(par_name, e_type):
+	p_names = []
+	for x in par_name.split('{'):
+		if '}' in x:	p_names.append(x[:x.index('}')])
+	for p in p_names:
+		par_name = par_name.replace(p,
+							  get_value(doc.GetElement(e_type).LookupParameter(p)))
+
+# Ask which is the project phase to study
 phases = DB.FilteredElementCollector(doc).OfClass(DB.Phase)
 phases = dict( [[p.Name, p.Id] for p in phases] )
-components = [Label('LEGEND COMPONENT ORIENTATION'),
-			  ComboBox('orientation', ['Veritcal', 'Horizontal']),
-			  Label('REFERENCE PROJECT PHASE. (where elements are created)'),
-			  ComboBox('phase', phases.keys()),
-			  Separator(),
-			  Button('OK')]
-form = FlexForm('Auto-Legend Components', components)
+form = FlexForm('Select Phase',
+				[Label('Reference project phase:'), ComboBox('phase', phases.keys()),
+	 			Separator(), Button('Select phase')])
 form.show()
-if not form.values.get('orientation'):  script.exit()
+if not form.values.get('phase'):  script.exit()
 
-
+# Select all the source elements: Legend component, Material tag, TextNote
 with forms.WarningBar(title='SELECT A LEGEND COMPONENT'):
 	legend = revit.pick_element()
 	forms.alert_ifnot(legend.Category.BuiltInCategory == DB.BuiltInCategory.OST_LegendComponents,
-					  'Select a Legend Component not selected.', exitscript=True)
+					  'Select a Legend Component.', exitscript=True)
 with forms.WarningBar(title='SELECT THE MATERIAL TAG TO USE'):
 	m_tag = revit.pick_element_by_category(DB.BuiltInCategory.OST_MaterialTags)
 with forms.WarningBar(title='SELECT TEXT-NOTES TO READ AND COPY'):
 	id_text = revit.pick_element_by_category(DB.BuiltInCategory.OST_TextNotes)
-	par_name = id_text.Text[:-1]
-	print('-'+par_name+'-')
-	# script.exit()
+	par_name = id_text.Text
 
 
 # COLLECT TYPES TO ADD
@@ -103,6 +104,23 @@ cat_id = doc.GetElement(legend.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONEN
 elems = DB.FilteredElementCollector(doc).OfCategoryId(cat_id).WhereElementIsNotElementType().WherePasses(phase_filetr)
 elems = set([e.GetTypeId() for e in elems])
 elems = set( [e for e in elems if 'curtain' not in doc.GetElement(e).FamilyName.lower()] )
+
+compound_categories = [DB.Category.GetCategory(DB.BuiltInCategory.OST_Walls).Id,
+					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Floors).Id,
+					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Roofs).Id,
+					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Ceilings).Id]
+if cat_id in compound_categories:
+	is_compound = True
+	# SET USER INPUT
+	components = [Label('LEGEND COMPONENT ORIENTATION'),
+				ComboBox('orientation', ['Veritcal', 'Horizontal']),
+				Separator(),
+				Button('OK')]
+	form = FlexForm('Auto-Legend Components', components)
+	form.show()
+	if not form.values.get('orientation'):  script.exit()
+else:	is_compound = False
+
 # DEFINE FIXED TRANSLATION
 translation = legend.get_BoundingBox(vw)
 tag_position = m_tag.get_BoundingBox(vw)
@@ -117,6 +135,13 @@ with revit.TransactionGroup('Automatic Legend'):
 			new_elem = doc.GetElement(new_elem[0])
 			new_elem.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT).Set(e_type)
 			print(new_elem)
+
+		with revit.Transaction('CopyPaste and create text'):
+			vec = new_elem.get_BoundingBox(vw).Min.Subtract(pt_base)
+			new_txt = DB.ElementTransformUtils.CopyElement(doc, id_text.Id, vec)
+			new_txt = doc.GetElement(new_txt[0])
+			new_txt.Text = define_text(par_name, e_type)
+		if not is_compound:	continue
 
 		with revit.Transaction('place tags'): 
 			ref = DB.Reference(new_elem)
@@ -155,11 +180,5 @@ with revit.TransactionGroup('Automatic Legend'):
 				create_dimension_horizontal(new_elem, layers_info[0], horizontal=True)
 			else:
 				create_dimension_horizontal(new_elem, layers_info[0], horizontal=False)
-
-		with revit.Transaction('CopyPaste and create text'):
-			vec = bb.Min.Subtract(pt_base)
-			new_txt = DB.ElementTransformUtils.CopyElement(doc, id_text.Id, vec)
-			new_txt = doc.GetElement(new_txt[0])
-			new_txt.Text = str(value_from_txt(e_type))
 
 script.get_output().close()
