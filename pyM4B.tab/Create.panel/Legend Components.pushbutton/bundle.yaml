@@ -16,6 +16,14 @@ tooltip:
   if contains a Parameter Name, will be repeated per each new component and 
   the text replaced with the interested parameter value.
 
+
+
+  e.g. a TextNote sample with some type parameters can be
+  
+
+  "Code: {Type Mark}
+  Descr: {Description}"
+
 # bundle help url
 help_url: "coming soon"
 
