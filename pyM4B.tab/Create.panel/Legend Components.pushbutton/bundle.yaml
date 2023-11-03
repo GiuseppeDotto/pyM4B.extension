@@ -6,6 +6,8 @@ title:
 context: active-legend
 
 tooltip:
+  To be run from a Legend view.
+  
   Auto generate one legend component per used element type.
   
   The category of the new Legend Compoenets is the same of the 

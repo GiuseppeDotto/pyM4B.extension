@@ -4,7 +4,7 @@
 
 from pyrevit import script, forms, revit, DB
 from rpw.ui.forms import FlexForm, Label, ComboBox, Separator, Button
-import DB
+# import DB
 
 doc = revit.doc
 vw = doc.ActiveView
@@ -55,17 +55,23 @@ def create_dimension_horizontal(legend_component, widths, horizontal=True):
 		ref_array.Append( DB.Reference(doc.GetElement(new_crv[0])) )
 	ref_array_total.Append( DB.Reference(doc.GetElement(new_crv[0])) )
 
-	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,-1)).Multiply(tot_len+0.25)), vec)
+	if horizontal:	norm_cross = 1
+	else:	norm_cross = -1
+	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,norm_cross)).Multiply(tot_len+0.25)), vec)
 	doc.Create.NewDimension(vw, dim_ln, ref_array)
 	
-	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,-1)).Multiply(tot_len+0.5)), vec)
+	dim_ln = DB.Line.CreateUnbound(base.Add(vec.CrossProduct(DB.XYZ(0,0,norm_cross)).Multiply(tot_len+0.5)), vec)
 	doc.Create.NewDimension(vw, dim_ln, ref_array_total)
 
 def get_value(par):
 	if par and par.StorageType == DB.StorageType.String:
-		return par.AsString()
+		if par.AsString():
+			return par.AsString()
+		else:	return ''
 	elif par:
-		return par.AsValueString()
+		if par.AsValueString():
+			return par.AsValueString()
+		else:	return ''
 	else:
 		return '---'
 
@@ -76,6 +82,7 @@ def define_text(par_name, e_type):
 	for p in p_names:
 		par_name = par_name.replace(p,
 							  get_value(doc.GetElement(e_type).LookupParameter(p)))
+	return par_name.replace('{', '').replace('}', '')
 
 # Ask which is the project phase to study
 phases = DB.FilteredElementCollector(doc).OfClass(DB.Phase)
@@ -103,29 +110,27 @@ phase_filetr = DB.ElementPhaseStatusFilter(phases[form.values['phase']],DB.Eleme
 cat_id = doc.GetElement(legend.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT).AsElementId()).Category.Id
 elems = DB.FilteredElementCollector(doc).OfCategoryId(cat_id).WhereElementIsNotElementType().WherePasses(phase_filetr)
 elems = set([e.GetTypeId() for e in elems])
-elems = set( [e for e in elems if 'curtain' not in doc.GetElement(e).FamilyName.lower()] )
 
-compound_categories = [DB.Category.GetCategory(DB.BuiltInCategory.OST_Walls).Id,
-					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Floors).Id,
-					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Roofs).Id,
-					   DB.Category.GetCategory(DB.BuiltInCategory.OST_Ceilings).Id]
+compound_categories = [DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Walls).Id,
+					   DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Floors).Id,
+					   DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Roofs).Id,
+					   DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Ceilings).Id]
+
+# Skip Curtain Walls
+if cat_id == compound_categories[0]:
+	elems = [w_type for w_type in elems if doc.GetElement(w_type).Kind == DB.WallKind.Basic]
+
 if cat_id in compound_categories:
 	is_compound = True
-	# SET USER INPUT
-	components = [Label('LEGEND COMPONENT ORIENTATION'),
-				ComboBox('orientation', ['Veritcal', 'Horizontal']),
-				Separator(),
-				Button('OK')]
-	form = FlexForm('Auto-Legend Components', components)
-	form.show()
-	if not form.values.get('orientation'):  script.exit()
+	if cat_id == compound_categories[0]:
+		is_horizontal = legend.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT_VIEW).AsInteger() == -8
+	else:	is_horizontal = True
 else:	is_compound = False
 
 # DEFINE FIXED TRANSLATION
 translation = legend.get_BoundingBox(vw)
-tag_position = m_tag.get_BoundingBox(vw)
 pt_base = translation.Min
-translation = (tag_position.Max.X - translation.Min.X)*2
+translation = (translation.Max.X - translation.Min.X)*2
 
 amount = len(elems)
 with revit.TransactionGroup('Automatic Legend'):
@@ -142,43 +147,40 @@ with revit.TransactionGroup('Automatic Legend'):
 			new_txt = doc.GetElement(new_txt[0])
 			new_txt.Text = define_text(par_name, e_type)
 		if not is_compound:	continue
+		else:	layers_info = get_layers(new_elem)
+		if m_tag:
+			with revit.Transaction('place tags'): 
+				ref = DB.Reference(new_elem)
+				bb = new_elem.get_BoundingBox(vw)
 
-		with revit.Transaction('place tags'): 
-			ref = DB.Reference(new_elem)
-			bb = new_elem.get_BoundingBox(vw)
-
-			pts = []
-			layers_info = get_layers(new_elem)
-			spacing = 0.25
-			pt = bb.Min
-			for n, y in enumerate(tag_distribution(layers_info[0])):
-				if form.values['orientation'] == "Horizontal":
-					new_pt = pt.Add( DB.XYZ((n+1)*spacing, y, bb.Min.Z) )
-					pts.append(new_pt)
-				else:
-					new_pt = pt.Add( DB.XYZ(y, (n+1)*spacing, bb.Min.Z) )
-					pts.append(new_pt)
-			if form.values['orientation'] == "Horizontal":
-				Xs = [p.X for p in pts]
-				for i, x in enumerate(Xs[::-1]):
-					pts[i] = pts[i] = DB.XYZ(x, pts[i].Y, pts[i].Z)
-			for n, pt in enumerate(pts):
-				new_tag = DB.IndependentTag.Create(doc, m_tag.GetTypeId(), vw.Id, ref,
-										True, DB.TagOrientation.Horizontal, pt)
-				
-				new_tag.LeaderEndCondition = DB.LeaderEndCondition.Free
-				new_tag.SetLeaderEnd(ref,pt)
-				if form.values['orientation'] == "Horizontal":
-					new_tag.SetLeaderElbow(ref, DB.XYZ(pt.X, bb.Max.Y + (n+1)*spacing, pt.Z))
-					new_tag.TagHeadPosition = DB.XYZ(bb.Max.X, bb.Max.Y +(n+1)*spacing, pt.Z)
-				else:
-					new_tag.SetLeaderElbow(ref, DB.XYZ(bb.Max.X, pt.Y, pt.Z))
-					new_tag.TagHeadPosition = DB.XYZ(bb.Max.X+spacing, pt.Y, pt.Z)
+				pts = []
+				spacing = 0.25
+				pt = bb.Min
+				for n, y in enumerate(tag_distribution(layers_info[0])):
+					if is_horizontal:
+						new_pt = pt.Add( DB.XYZ((n+1)*spacing, y, bb.Min.Z) )
+						pts.append(new_pt)
+					else:
+						new_pt = pt.Add( DB.XYZ(y, (n+1)*spacing, bb.Min.Z) )
+						pts.append(new_pt)
+				if is_horizontal:
+					Xs = [p.X for p in pts]
+					for i, x in enumerate(Xs[::-1]):
+						pts[i] = DB.XYZ(x, pts[i].Y, pts[i].Z)
+				for n, pt in enumerate(pts):
+					new_tag = DB.IndependentTag.Create(doc, m_tag.GetTypeId(), vw.Id, ref,
+											True, DB.TagOrientation.Horizontal, pt)
+					
+					new_tag.LeaderEndCondition = DB.LeaderEndCondition.Free
+					new_tag.SetLeaderEnd(ref,pt)
+					if is_horizontal:
+						new_tag.SetLeaderElbow(ref, DB.XYZ(pt.X, bb.Max.Y + (n+1)*spacing, pt.Z))
+						new_tag.TagHeadPosition = DB.XYZ(bb.Max.X, bb.Max.Y +(n+1)*spacing, pt.Z)
+					else:
+						new_tag.SetLeaderElbow(ref, DB.XYZ(bb.Max.X, pt.Y, pt.Z))
+						new_tag.TagHeadPosition = DB.XYZ(bb.Max.X+spacing, pt.Y, pt.Z)
 
 		with revit.Transaction('Create Dimensions'):
-			if form.values['orientation'] == "Horizontal":
-				create_dimension_horizontal(new_elem, layers_info[0], horizontal=True)
-			else:
-				create_dimension_horizontal(new_elem, layers_info[0], horizontal=False)
+			create_dimension_horizontal(new_elem, layers_info[0], horizontal=is_horizontal)
 
 script.get_output().close()
