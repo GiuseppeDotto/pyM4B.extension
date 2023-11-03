@@ -98,11 +98,11 @@ with forms.WarningBar(title='SELECT A LEGEND COMPONENT'):
 	legend = revit.pick_element()
 	forms.alert_ifnot(legend.Category.BuiltInCategory == DB.BuiltInCategory.OST_LegendComponents,
 					  'Select a Legend Component.', exitscript=True)
-with forms.WarningBar(title='SELECT THE MATERIAL TAG TO USE'):
+with forms.WarningBar(title='SELECT THE MATERIAL TAG TO USE - Press "Esc" to skip'):
 	m_tag = revit.pick_element_by_category(DB.BuiltInCategory.OST_MaterialTags)
-with forms.WarningBar(title='SELECT TEXT-NOTES TO READ AND COPY'):
+with forms.WarningBar(title='SELECT TEXT-NOTES TO READ AND COPY - Press "Esc" to skip'):
 	id_text = revit.pick_element_by_category(DB.BuiltInCategory.OST_TextNotes)
-	par_name = id_text.Text
+	if id_text:	par_name = id_text.Text
 
 
 # COLLECT TYPES TO ADD
@@ -143,11 +143,12 @@ with revit.TransactionGroup('Automatic Legend'):
 			new_elem.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT).Set(e_type)
 			print(new_elem)
 
-		with revit.Transaction('CopyPaste and create text'):
-			vec = new_elem.get_BoundingBox(vw).Min.Subtract(pt_base)
-			new_txt = DB.ElementTransformUtils.CopyElement(doc, id_text.Id, vec)
-			new_txt = doc.GetElement(new_txt[0])
-			new_txt.Text = define_text(par_name, e_type)
+		if id_text:
+			with revit.Transaction('CopyPaste and create text'):
+				vec = new_elem.get_BoundingBox(vw).Min.Subtract(pt_base)
+				new_txt = DB.ElementTransformUtils.CopyElement(doc, id_text.Id, vec)
+				new_txt = doc.GetElement(new_txt[0])
+				new_txt.Text = define_text(par_name, e_type)
 		if not is_compound:	continue
 		else:	layers_info = get_layers(new_elem)
 		if m_tag:
