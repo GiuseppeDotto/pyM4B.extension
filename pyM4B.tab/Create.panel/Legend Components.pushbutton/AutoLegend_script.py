@@ -120,6 +120,7 @@ compound_categories = [DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Walls
 if cat_id == compound_categories[0]:
 	elems = [w_type for w_type in elems if doc.GetElement(w_type).Kind == DB.WallKind.Basic]
 
+is_horizontal = False
 if cat_id in compound_categories:
 	is_compound = True
 	if cat_id == compound_categories[0]:
@@ -131,6 +132,7 @@ else:	is_compound = False
 translation = legend.get_BoundingBox(vw)
 pt_base = translation.Min
 translation = (translation.Max.X - translation.Min.X)*2
+if not is_horizontal:	translation *= 2
 
 amount = len(elems)
 with revit.TransactionGroup('Automatic Legend'):
