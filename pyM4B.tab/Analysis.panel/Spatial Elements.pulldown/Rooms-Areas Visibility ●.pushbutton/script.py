@@ -1,9 +1,4 @@
 
-__title__ = 'Rooms/Areas\nVisibility ●'
-__doc__ = "Enable Temporary View Properties and then turn ON visibility for "\
-			"Rooms, Areas and its sub-categories, including Separators Lines.\n"\
-			"SHIFT-CLICK: Isolate the above mentioned categories."
-
 
 from System.Collections.Generic import List
 from pyrevit import revit, DB
