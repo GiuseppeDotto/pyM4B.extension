@@ -75,7 +75,7 @@ with revit.TransactionGroup('Automatic Legend'):
 				new_txt = doc.GetElement(new_txt[0])
 				m4b_legend.set_TextNote(new_txt, e_type)
 		if is_compound:
-			if m_tag:
+			if m_tag and m_tag != 'None':
 				with revit.Transaction('place tags'):
 					m4b_legend.create_material_tags(new_elem, m_tag, vw, is_horizontal)
 
