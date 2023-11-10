@@ -25,7 +25,7 @@ else:	phase = phases[phase]
 # Select all the source elements: Legend component, TextNote
 with forms.WarningBar(title='SELECT A LEGEND COMPONENT'):
 	legend = revit.pick_element()
-	forms.alert_ifnot(legend.Category.BuiltInCategory == DB.BuiltInCategory.OST_LegendComponents,
+	forms.alert_ifnot(legend.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT),
 					  'Select a Legend Component.', exitscript=True)
 # Define legend component's characteritics
 is_compound, is_horizontal = m4b_legend.get_info(legend)
