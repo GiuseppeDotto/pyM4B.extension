@@ -48,10 +48,11 @@ phase_filetr = DB.ElementPhaseStatusFilter(phase,DB.ElementOnPhaseStatus.New)
 cat_id = doc.GetElement(legend.get_Parameter(DB.BuiltInParameter.LEGEND_COMPONENT).AsElementId()).Category.Id
 elems = DB.FilteredElementCollector(doc).OfCategoryId(cat_id).WhereElementIsNotElementType().WherePasses(phase_filetr)
 elems = set([e.GetTypeId() for e in elems])
+# Skip Model in Place
+elems = [x for x in elems if doc.GetElement(x).GetType() != DB.FamilySymbol]
 # Skip Curtain Walls
 if cat_id == DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Walls).Id:
-	elems = [w_type for w_type in elems if hasattr(doc.GetElement(w_type), 'Kind') and
-		  								   doc.GetElement(w_type).Kind == DB.WallKind.Basic]
+	elems = [w_type for w_type in elems if doc.GetElement(w_type).Kind == DB.WallKind.Basic]
 
 
 # DEFINE FIXED TRANSLATION
