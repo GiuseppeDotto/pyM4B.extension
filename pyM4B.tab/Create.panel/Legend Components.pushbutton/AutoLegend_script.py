@@ -50,7 +50,8 @@ elems = DB.FilteredElementCollector(doc).OfCategoryId(cat_id).WhereElementIsNotE
 elems = set([e.GetTypeId() for e in elems])
 # Skip Curtain Walls
 if cat_id == DB.Category.GetCategory(doc, DB.BuiltInCategory.OST_Walls).Id:
-	elems = [w_type for w_type in elems if doc.GetElement(w_type).Kind == DB.WallKind.Basic]
+	elems = [w_type for w_type in elems if hasattr(doc.GetElement(w_type), 'Kind') and
+		  								   doc.GetElement(w_type).Kind == DB.WallKind.Basic]
 
 
 # DEFINE FIXED TRANSLATION
