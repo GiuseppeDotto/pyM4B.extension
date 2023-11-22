@@ -40,7 +40,7 @@ def center_tag(room):
 			elem.Location.Point = room.Location.Point
 
 # SELECT ROOMS
-context = ['Manually select', 'All in acrive view', 'All in project']
+context = ['Manually select', 'All in active view', 'All in project']
 ui = forms.CommandSwitchWindow.show(context)
 if ui == context[0]:
 	with forms.WarningBar(title='Pick rooms to centralize'):
