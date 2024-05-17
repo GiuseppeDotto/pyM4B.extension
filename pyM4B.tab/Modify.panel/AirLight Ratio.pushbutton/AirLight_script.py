@@ -1,7 +1,7 @@
 
 __doc__ = 'The tool is for automatically calculate the ration WindowArea/RoomArea'\
 		" taking in consideration only the Curtain Wall Panels, Windows and Doors Types selected."\
-		"\nIn addition, it gives the possibility to store the value in the room's selected parameter(s)"
+		"\nIn addition, it gives the possibility to store the value in the Room's selected parameter(s)"
 
 from System.Collections.Generic import List
 from pyrevit import script, revit, forms, DB
