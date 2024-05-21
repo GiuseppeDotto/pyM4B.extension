@@ -1,16 +1,4 @@
 
-__doc__ = "Calculate the ratio between the openings and floor areas for the seleced Rooms. "\
-          "For Openings is inteded elements of categories Windows, Doors and Curtain Wall Panels.\n"\
-          "The function requires specific user inputs such as:\n"\
-          "1. The Rooms for which the calculation will be performed.\n"\
-          "2. The Rooms' parameter to set with the calculated ratio. This has to be a numeric parameter.\n"\
-          "3. A Window to inspect and ask for the Area parameter to read.\n"\
-          "4. A Curtain Wall Panel to inspect and ask for the Area parameter to read.\n"\
-          "5. A Door to inspect and ask for the Area parameter to read.\n\n"\
-          "At the end of the calculation 2 table will be plot "\
-          "so to give the user the possibility of inspect the produced result. In Addition, all the "\
-          "interested opening families will be selected."
-
 from pyrevit import DB, revit, forms, script
 from System.Collections.Generic import List
 try: import DB
@@ -51,8 +39,10 @@ room_name = lambda r: DB.Element.Name.__get__(r)
 with forms.WarningBar(title='Select the interested Rooms'):
     rooms = revit.pick_elements_by_category(BIC.OST_Rooms)
     if not rooms: script.exit()
-    par_to_set = forms.SelectFromList.show(sorted([p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]),
-                                           button_name='Select Room parameter to update')
+    par_ratio_to_set = forms.SelectFromList.show(sorted([p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]),
+                                           button_name='Select Room parameter where to store the RATIO')
+    par_area_to_set = forms.SelectFromList.show(sorted([p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]),
+                                           button_name='Select Room parameter where to store the TOTAL AREA')
 
 # Select curstom parameters
 custom_params = {'Window': [BIC.OST_Windows],
@@ -109,9 +99,10 @@ with revit.Transaction('M4B - AirLight Ratio'):
                     DB.UnitUtils.ConvertFromInternalUnits(total_area, par.GetUnitTypeId()),
                     DB.UnitUtils.ConvertFromInternalUnits(par.AsDouble(), par.GetUnitTypeId()),
                     ratio])
-        if par_to_set:
+        if par_ratio_to_set:
             par_set += 1
-            room.LookupParameter(par_to_set).Set(ratio)
+            room.LookupParameter(par_ratio_to_set).Set(ratio)
+            room.LookupParameter(par_area_to_set).Set(total_area)
 
 uidoc.RefreshActiveView()
 uidoc.Selection.SetElementIds(List[DB.ElementId](to_select))
