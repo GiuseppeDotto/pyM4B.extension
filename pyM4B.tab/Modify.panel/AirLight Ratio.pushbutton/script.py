@@ -73,7 +73,9 @@ components = [Label('ROOMS PARAMETERS TO SET'),
 custom_params = FlexForm('AirLight Ratio User Input', components)
 custom_params.show()
 custom_params = custom_params.values
-if not custom_params.get('ratio'): script.exit()
+if not custom_params.get('ratio'):
+    uidoc.RefreshActiveView()
+    script.exit()
 
 par_ratio_to_set = custom_params.pop('ratio')
 par_area_to_set = custom_params.pop('vArea')
