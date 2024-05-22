@@ -1,5 +1,6 @@
 
 from pyrevit import DB, revit, forms, script
+from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, Separator, Button, CheckBox
 from System.Collections.Generic import List
 try: import DB
 except: pass
@@ -32,6 +33,18 @@ def get_adjacentRooms(e, rooms_sld=rooms_sld, all_rooms=all_rooms):
         if len(out) == 2:   break
     return out
 
+def get_parameterNames(bic):
+    elems = DB.FilteredElementCollector(doc).OfCategory(bic).WhereElementIsNotElementType()
+    temp = set()
+    for w in elems:
+        for p in w.Parameters:
+            if p.StorageType == DB.StorageType.Double:
+                temp.add('[instance] '+p.Definition.Name)
+        for p in doc.GetElement(w.GetTypeId()).Parameters:
+            if p.StorageType == DB.StorageType.Double:
+                temp.add('[type] '+p.Definition.Name)
+    return list(temp)
+
 # room_name = lambda r: '[{}] {}'.format(r.Number, DB.Element.Name.__get__(r))
 room_name = lambda r: DB.Element.Name.__get__(r)
 
@@ -39,25 +52,35 @@ room_name = lambda r: DB.Element.Name.__get__(r)
 with forms.WarningBar(title='Select the interested Rooms'):
     rooms = revit.pick_elements_by_category(BIC.OST_Rooms)
     if not rooms: script.exit()
-    par_ratio_to_set = forms.SelectFromList.show(sorted([p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]),
-                                           button_name='Select Room parameter where to store the RATIO')
-    par_area_to_set = forms.SelectFromList.show(sorted([p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]),
-                                           button_name='Select Room parameter where to store the TOTAL AREA')
 
-# Select curstom parameters
-custom_params = {'Window': [BIC.OST_Windows],
-                 'Door': [BIC.OST_Doors],
-                 'CurtainWallPanel': [BIC.OST_CurtainWallPanels]}
-for k in custom_params.keys():
-    with forms.WarningBar(title='Select a {}'.format(k)):
-        elem = revit.pick_element_by_category(custom_params[k][0])
-        if elem:
-            params = ['[instance] '+p.Definition.Name for p in elem.Parameters 
-                    if p.StorageType == DB.StorageType.Double and p.AsValueString()]
-            params += ['[type] '+p.Definition.Name for p in doc.GetElement(elem.GetTypeId()).Parameters 
-                    if p.StorageType == DB.StorageType.Double and p.AsValueString()]
-            custom_params[k].append( forms.SelectFromList.show(sorted(params)) )
-        else:   custom_params[k].append(None)
+# DEFINE USER INPUTS
+room_parameters = [p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]
+components = [Label('ROOMS PARAMETERS TO SET'),
+              Label('Ratio:'),
+              ComboBox('ratio', ['---']+room_parameters),
+              Label('Total Verical Area:'),
+              ComboBox('vArea', ['---']+room_parameters),
+              Separator(),
+              Label('ELEMENTS PARAMETERS TO READ'),
+              Label('Windows:'),
+              ComboBox('Window', ['---']+get_parameterNames(BIC.OST_Windows)),
+              Label('Doors:'),
+              ComboBox('Door', ['---']+get_parameterNames(BIC.OST_Doors)),
+              Label('Curatin Wall Panels:'),
+              ComboBox('CurtainWallPanel', ['---']+get_parameterNames(BIC.OST_CurtainWallPanels)),
+              Separator(),
+              Button('Select')]
+custom_params = FlexForm('AirLight Ratio User Input', components)
+custom_params.show()
+custom_params = custom_params.values
+if not custom_params.get('ratio'): script.exit()
+
+par_ratio_to_set = custom_params.pop('ratio')
+par_area_to_set = custom_params.pop('vArea')
+custom_params['Window'] = [BIC.OST_Windows, custom_params['Window']]
+custom_params['Door'] = [BIC.OST_Doors, custom_params['Door']]
+custom_params['CurtainWallPanel'] = [BIC.OST_CurtainWallPanels, custom_params['CurtainWallPanel']]
+
 # create filter 1
 multicat = [BIC.OST_Windows, BIC.OST_Doors, BIC.OST_CurtainWallPanels]
 multicat = DB.ElementMulticategoryFilter(List[DB.BuiltInCategory](multicat))
