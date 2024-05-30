@@ -4,12 +4,13 @@ author: Giuseppe Dotto
 tooltip: |-
   Calculate the ratio between the openings and floor areas for the seleced Rooms. For Openings is inteded elements of categories Windows, Doors and Curtain Wall Panels.
   The function requires specific user inputs such as:
-  1. The Rooms for which the calculation will be performed.
-  2. The Rooms' parameter to set with the calculated ratio.
-  3. The Rooms' parameter to set with the total vertical area.
-  4. A Window to inspect and ask for the Area parameter to read.
-  5. A Curtain Wall Panel to inspect and ask for the Area parameter to read.
-  6. A Door to inspect and ask for the Area parameter to read.
+  1. The Project Phase to analyze.
+  2. The Rooms for which the calculation will be performed.
+  3. Parameters:
+    - Rooms area parameter to write
+    - Rooms ratio parameter to write
+    - Windows area parameter to read
+    - Doors area parameter to read
   
   At the end of the calculation 2 table will be plot so to give the user the possibility of inspect the produced result. In Addition, all the interested opening families will be selected.
 

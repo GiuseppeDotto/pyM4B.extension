@@ -11,9 +11,21 @@ doc = revit.doc
 uidoc = revit.uidoc
 BIC = DB.BuiltInCategory
 
+# Create phase filter
+phases = DB.FilteredElementCollector(doc).OfClass(DB.Phase)
+phases = dict([[p.Name, p] for p in phases])
+phase = forms.CommandSwitchWindow.show(phases, message='Select Phase')
+phase = phases.get(phase)
+if not phase: script.exit()
+phase_filter = DB.ElementPhaseStatusFilter(phase.Id,
+                                           List[DB.ElementOnPhaseStatus]([DB.ElementOnPhaseStatus.New,
+                                                                          DB.ElementOnPhaseStatus.Existing]),
+                                           False)
+
 # Custom Functions
 rooms_sld = []
-all_rooms = DB.FilteredElementCollector(doc).OfCategory(BIC.OST_Rooms).WhereElementIsNotElementType().ToElements()
+all_rooms = DB.FilteredElementCollector(doc).OfCategory(BIC.OST_Rooms).WhereElementIsNotElementType()
+all_rooms = [r for r in all_rooms if r.get_Parameter(DB.BuiltInParameter.ROOM_PHASE).AsElementId() == phase.Id]
 for r in all_rooms:
     sld = r.get_Geometry(DB.Options()).GetEnumerator()
     sld.MoveNext()
@@ -33,33 +45,30 @@ def get_adjacentRooms(e, rooms_sld=rooms_sld, all_rooms=all_rooms):
         if len(out) == 2:   break
     return out
 
-def get_parameterNames(bic):
-    elems = DB.FilteredElementCollector(doc).OfCategory(bic).WhereElementIsNotElementType()
+def get_parameterNames(bic, specType=DB.SpecTypeId.Area):
+    elems = DB.FilteredElementCollector(doc).OfCategory(bic).WhereElementIsNotElementType().WherePasses(phase_filter)
     temp = set()
     for w in elems:
         for p in w.Parameters:
-            if p.StorageType == DB.StorageType.Double:
+            if p.StorageType == DB.StorageType.Double and p.Definition.GetDataType() == specType:
                 temp.add('[instance] '+p.Definition.Name)
         for p in doc.GetElement(w.GetTypeId()).Parameters:
             if p.StorageType == DB.StorageType.Double:
                 temp.add('[type] '+p.Definition.Name)
     return list(temp)
 
-# room_name = lambda r: '[{}] {}'.format(r.Number, DB.Element.Name.__get__(r))
 room_name = lambda r: DB.Element.Name.__get__(r)
 
 
-with forms.WarningBar(title='Select the interested Rooms'):
-    rooms = revit.pick_elements_by_category(BIC.OST_Rooms)
-    if not rooms: script.exit()
-
 # DEFINE USER INPUTS
-room_parameters = [p.Definition.Name for p in rooms[0].Parameters if p.StorageType == DB.StorageType.Double]
+room_parameters = [p.Definition.Name for p in all_rooms[0].Parameters if p.StorageType == DB.StorageType.Double]
+room_parameters_area = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Area]
+room_parameters_ratio = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Number]
 components = [Label('ROOMS PARAMETERS TO SET'),
               Label('Ratio:'),
-              ComboBox('ratio', ['---']+room_parameters),
+              ComboBox('ratio', ['---']+room_parameters_ratio),
               Label('Total Verical Area:'),
-              ComboBox('vArea', ['---']+room_parameters),
+              ComboBox('vArea', ['---']+room_parameters_area),
               Separator(),
               Label('ELEMENTS PARAMETERS TO READ'),
               Label('Windows:'),
@@ -91,14 +100,16 @@ data = []
 result = []
 par_set = 0
 with revit.Transaction('M4B - AirLight Ratio'):
-    for room in rooms:
+    for room in all_rooms:
         # create filter 2
         bb = room.get_BoundingBox(None)
         filter2 = DB.BoundingBoxIntersectsFilter(DB.Outline(bb.Min, bb.Max), 3)
 
         # get all interesting openings
-        openings = DB.FilteredElementCollector(doc).WherePasses(multicat).WherePasses(filter2)
-        total_area = 0
+        openings = DB.FilteredElementCollector(doc).WherePasses(phase_filter)\
+                                                   .WherePasses(multicat)\
+                                                   .WherePasses(filter2)
+        total_area = 0.0
         for i in openings:
             adjacent_rooms = get_adjacentRooms(i)
             if len(adjacent_rooms) == 1 and adjacent_rooms[0] == room.Id:
@@ -133,15 +144,16 @@ uidoc.RefreshActiveView()
 uidoc.Selection.SetElementIds(List[DB.ElementId](to_select))
 
 forms.alert('{} Rooms update'.format(par_set), 
-            warn_icon=False,
-            expanded=str([[x[0], x[-1]] for x in result]).replace('[', '').replace('],', '\n').replace(']]', ''))
+            warn_icon=False,)
+            # expanded=str([[x[0], x[-1]] for x in result]).replace('[', '').replace('],', '\n').replace(']]', ''))
 
 output.print_table(result, title='RESULTS', columns=['Room', 'Openings', 'Floor', 'Ratio'])
 
 y = True
 Y = True
 try:
-    if input('Print detailed table? [Y/N]'):
+    print('')
+    if input('\n#####\n\nPrint detailed table? [Y/N]'):
         output.print_table(data, title='Details', columns=['Room', 'Family Instance', 'Area'])
 except:
     pass
