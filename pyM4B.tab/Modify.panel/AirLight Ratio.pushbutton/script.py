@@ -23,25 +23,19 @@ phase_filter = DB.ElementPhaseStatusFilter(phase.Id,
                                            False)
 
 # Custom Functions
-rooms_sld = []
 all_rooms = DB.FilteredElementCollector(doc).OfCategory(BIC.OST_Rooms).WhereElementIsNotElementType()
 all_rooms = [r for r in all_rooms if r.get_Parameter(DB.BuiltInParameter.ROOM_PHASE).AsElementId() == phase.Id]
-for r in all_rooms:
-    sld = r.get_Geometry(DB.Options()).GetEnumerator()
-    sld.MoveNext()
-    rooms_sld.append(sld.Current)
 
-def get_adjacentRooms(e, rooms_sld=rooms_sld, all_rooms=all_rooms):
+def get_adjacentRooms(e, all_rooms=all_rooms):
     bb = e.get_BoundingBox(None)
     pt = DB.Line.CreateBound(bb.Min, bb.Max)
     pt = pt.Evaluate(0.5, True)
     pt1 = pt.Add(e.FacingOrientation.Multiply(2))
     pt2 = pt.Add(e.FacingOrientation.Multiply(-2))
-    ln = DB.Line.CreateBound(pt1, pt2)
     out = []
-    for r, sld in zip(all_rooms, rooms_sld):
-        intersection = sld.IntersectWithCurve(ln, DB.SolidCurveIntersectionOptions())
-        if intersection.SegmentCount > 0:   out.append(r.Id)
+    for r in all_rooms:
+        if r.IsPointInRoom(pt1):    out.append(r.Id)
+        if r.IsPointInRoom(pt2):    out.append(r.Id)
         if len(out) == 2:   break
     return out
 
