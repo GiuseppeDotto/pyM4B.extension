@@ -47,7 +47,7 @@ def get_parameterNames(bic, specType=DB.SpecTypeId.Area):
             if p.StorageType == DB.StorageType.Double and p.Definition.GetDataType() == specType:
                 temp.add('[instance] '+p.Definition.Name)
         for p in doc.GetElement(w.GetTypeId()).Parameters:
-            if p.StorageType == DB.StorageType.Double:
+            if p.StorageType == DB.StorageType.Double and p.Definition.GetDataType() == specType:
                 temp.add('[type] '+p.Definition.Name)
     return list(temp)
 
@@ -55,9 +55,9 @@ room_name = lambda r: DB.Element.Name.__get__(r)
 
 
 # DEFINE USER INPUTS
-room_parameters = [p.Definition.Name for p in all_rooms[0].Parameters if p.StorageType == DB.StorageType.Double]
-room_parameters_area = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Area]
-room_parameters_ratio = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Number]
+# room_parameters = [p.Definition.Name for p in all_rooms[0].Parameters if p.StorageType == DB.StorageType.Double]
+room_parameters_area = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Area and not p.IsReadOnly]
+room_parameters_ratio = [p.Definition.Name for p in all_rooms[0].Parameters if p.Definition.GetDataType() == DB.SpecTypeId.Number and not p.IsReadOnly]
 components = [Label('ROOMS PARAMETERS TO SET'),
               Label('Ratio:'),
               ComboBox('ratio', ['---']+room_parameters_ratio),
@@ -119,9 +119,9 @@ with revit.Transaction('M4B - AirLight Ratio'):
                         if par:
                             total_area += par.AsDouble()
                             data.append([room_name(room),
-                                            output.linkify(i.Id,
-                                                        i.get_Parameter(DB.BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).AsValueString()),
-                                            DB.UnitUtils.ConvertFromInternalUnits(par.AsDouble(), par.GetUnitTypeId())])
+                                         '[{}] {}'.format(i.Id.ToString(),
+                                                          i.get_Parameter(DB.BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).AsValueString()),
+                                          DB.UnitUtils.ConvertFromInternalUnits(par.AsDouble(), par.GetUnitTypeId())])
 
         par = room.get_Parameter(DB.BuiltInParameter.ROOM_AREA)
         ratio = total_area/par.AsDouble()
@@ -137,17 +137,18 @@ with revit.Transaction('M4B - AirLight Ratio'):
 uidoc.RefreshActiveView()
 uidoc.Selection.SetElementIds(List[DB.ElementId](to_select))
 
-forms.alert('{} Rooms update'.format(par_set), 
-            warn_icon=False,)
-            # expanded=str([[x[0], x[-1]] for x in result]).replace('[', '').replace('],', '\n').replace(']]', ''))
+export = forms.alert('{} Rooms update'.format(par_set), 
+                     warn_icon=False,
+                     options=['Export data to CSV', 'Close'])
 
-output.print_table(result, title='RESULTS', columns=['Room', 'Openings', 'Floor', 'Ratio'])
-
-y = True
-Y = True
-try:
-    print('')
-    if input('\n#####\n\nPrint detailed table? [Y/N]'):
-        output.print_table(data, title='Details', columns=['Room', 'Family Instance', 'Area'])
-except:
-    pass
+if export == 'Export data to CSV':
+    # export CSV
+    import csv
+    file_path = forms.save_file(file_ext='csv')
+    if file_path:
+        with open(file_path.replace('.csv', ' - summary.csv'), 'wb') as file:
+            writer = csv.writer(file)
+            writer.writerows( [['Room', 'Openings', 'Floor', 'Ratio']]+result )
+        with open(file_path.replace('.csv', ' - detail.csv'), 'wb') as file:
+            writer = csv.writer(file)
+            writer.writerows( [['Room', 'Family Instance', 'Area']]+data )
