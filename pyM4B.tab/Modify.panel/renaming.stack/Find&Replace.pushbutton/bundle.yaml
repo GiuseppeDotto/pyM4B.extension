@@ -1,0 +1,7 @@
+title:
+  Find & Replace
+
+tooltip: >
+  Find and replace string from the name of the selected elements.
+
+context: selection
