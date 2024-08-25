@@ -3,6 +3,7 @@ try: import DB
 except: pass
 from rpw.ui.forms import FlexForm, Label, TextBox, Separator, Button
 
+# Global variables
 doc = revit.doc
 
 # CREATE INPUT FORM
@@ -22,7 +23,7 @@ if not old_text: script.exit()
 
 selection = revit.get_selection()
 amount = 0
-with revit.Transaction('M4B - FInd & Replace'):
+with revit.Transaction('M4B - Find & Replace'):
 	for elem in selection:
 		current_name = DB.Element.Name.__get__(elem)
 		if old_text in current_name:

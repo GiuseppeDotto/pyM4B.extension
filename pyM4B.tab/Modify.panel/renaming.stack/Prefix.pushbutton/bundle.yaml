@@ -1,0 +1,8 @@
+tooltip: > 
+  The function runs upon elements selected.
+
+  Add or replace a given prefix string to the name of the selected elements. 
+  When "replace" is selected, then the replacement will be of the first exact 
+  amount of carachters of the new prefix.
+
+  Tip: you can select Types or View from the Project Browser window.

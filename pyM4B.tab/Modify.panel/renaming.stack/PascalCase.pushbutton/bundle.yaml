@@ -1,0 +1,12 @@
+title: PascalCase
+
+tooltip: >
+  The function runs upon elements selected.
+  
+  Edit the Family or the Type names of the selected elements rewriting 
+  in Pascal-Case (ExampleTextOfPascalCase). The words can be recognized 
+  only if there is a space between them in the current name.
+  
+  Tip: you can also select Types from the Project Browser window.
+  
+context: selection

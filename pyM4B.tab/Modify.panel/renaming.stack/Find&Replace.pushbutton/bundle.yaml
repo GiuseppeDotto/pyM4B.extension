@@ -2,6 +2,8 @@ title:
   Find & Replace
 
 tooltip: >
+  The function runs upon elements selected.
+
   Find and replace string from the name of the selected elements.
 
 context: selection
