@@ -1,7 +1,7 @@
 
 from pyrevit import DB, revit, forms, script
 from rpw.ui.forms import FlexForm, Label, ComboBox, TextBox, Separator, Button, CheckBox
-from System.Collections.Generic import List
+from System.Collections.Generic import List # type: ignore
 try: import DB
 except: pass
 
@@ -25,13 +25,21 @@ phase_filter = DB.ElementPhaseStatusFilter(phase.Id,
 # Custom Functions
 all_rooms = DB.FilteredElementCollector(doc).OfCategory(BIC.OST_Rooms).WhereElementIsNotElementType()
 all_rooms = [r for r in all_rooms if r.get_Parameter(DB.BuiltInParameter.ROOM_PHASE).AsElementId() == phase.Id]
+forms.alert_ifnot(len(all_rooms) > 0, 
+                  'no rooms found in the projects', 
+                  exitscript=True)
 
 def get_adjacentRooms(e, all_rooms=all_rooms):
     bb = e.get_BoundingBox(None)
     pt = DB.Line.CreateBound(bb.Min, bb.Max)
     pt = pt.Evaluate(0.5, True)
-    pt1 = pt.Add(e.FacingOrientation.Multiply(2))
-    pt2 = pt.Add(e.FacingOrientation.Multiply(-2))
+    if hasattr(e, 'FacingOrientation'):
+        pt1 = pt.Add(e.FacingOrientation.Multiply(2))
+        pt2 = pt.Add(e.FacingOrientation.Multiply(-2))
+    elif hasattr(e, 'Orientation'):
+        pt1 = pt.Add(e.Orientation.Multiply(2))
+        pt2 = pt.Add(e.Orientation.Multiply(-2))
+    else: return None
     out = []
     for r in all_rooms:
         if r.IsPointInRoom(pt1):    out.append(r.Id)
@@ -61,7 +69,7 @@ room_parameters_ratio = [p.Definition.Name for p in all_rooms[0].Parameters if p
 components = [Label('ROOMS PARAMETERS TO SET'),
               Label('Ratio:'),
               ComboBox('ratio', ['---']+room_parameters_ratio),
-              Label('Total Verical Area:'),
+              Label('Total Vertical Area:'),
               ComboBox('vArea', ['---']+room_parameters_area),
               Separator(),
               Label('ELEMENTS PARAMETERS TO READ'),
@@ -82,6 +90,8 @@ if not custom_params.get('ratio'):
 
 par_ratio_to_set = custom_params.pop('ratio')
 par_area_to_set = custom_params.pop('vArea')
+if '---' in [par_ratio_to_set, par_area_to_set]:
+    forms.alert('no parameter for "Ratio" or "Total Vertical Area" selected.', exitscript=True)
 custom_params['Window'] = [BIC.OST_Windows, custom_params['Window']]
 custom_params['Door'] = [BIC.OST_Doors, custom_params['Door']]
 custom_params['CurtainWallPanel'] = [BIC.OST_CurtainWallPanels, custom_params['CurtainWallPanel']]
