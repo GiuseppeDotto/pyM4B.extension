@@ -12,6 +12,23 @@ def mm_to_internal(value):
     return DB.UnitUtils.ConvertToInternalUnits(value, DB.UnitTypeId.Millimeters)
 
 
+def get_element_name(elem):
+    try:
+        return DB.Element.Name.GetValue(elem)
+    except Exception:
+        pass
+    try:
+        return elem.Name
+    except Exception:
+        pass
+    p = elem.get_Parameter(DB.BuiltInParameter.SYMBOL_NAME_PARAM)
+    if p:
+        n = p.AsString()
+        if n:
+            return n
+    return "Element {}".format(elem.Id.IntegerValue)
+
+
 def is_2d_view(view):
     allowed = (
         DB.ViewType.FloorPlan,
@@ -77,11 +94,20 @@ def select_view2d():
 
 def select_dimension_type():
     dim_types = list(DB.FilteredElementCollector(doc).OfClass(DB.DimensionType))
+    linear_types = []
+    for dt in dim_types:
+        try:
+            if dt.StyleType == DB.DimensionStyleType.Linear:
+                linear_types.append(dt)
+        except Exception:
+            continue
+
+    dim_types = linear_types
     if not dim_types:
-        forms.alert("No dimension types found.", exitscript=True)
+        forms.alert("No linear dimension types found.", exitscript=True)
     name_map = {}
     for dt in dim_types:
-        name = dt.Name
+        name = get_element_name(dt)
         if name in name_map:
             name = "{} [{}]".format(name, dt.Id.IntegerValue)
         name_map[name] = dt
@@ -133,7 +159,7 @@ if not rooms:
 intersector = build_intersector(view3d)
 right = view2d.RightDirection.Normalize()
 up = view2d.UpDirection.Normalize()
-offset = mm_to_internal(200.0)
+offset = mm_to_internal(500.0)
 
 created = 0
 skipped = 0
@@ -171,10 +197,10 @@ with revit.Transaction("Automatic Room Dimensions"):
             skipped += 1
             continue
 
-        p1 = t.OfPoint(DB.XYZ(bbmin.X, bbmin.Y, midz)) - (up * offset)
-        p2 = t.OfPoint(DB.XYZ(bbmax.X, bbmin.Y, midz)) - (up * offset)
-        p3 = t.OfPoint(DB.XYZ(bbmin.X, bbmin.Y, midz)) - (right * offset)
-        p4 = t.OfPoint(DB.XYZ(bbmin.X, bbmax.Y, midz)) - (right * offset)
+        p1 = t.OfPoint(DB.XYZ(bbmin.X, bbmin.Y, midz)) + (up * offset)
+        p2 = t.OfPoint(DB.XYZ(bbmax.X, bbmin.Y, midz)) + (up * offset)
+        p3 = t.OfPoint(DB.XYZ(bbmin.X, bbmin.Y, midz)) + (right * offset)
+        p4 = t.OfPoint(DB.XYZ(bbmin.X, bbmax.Y, midz)) + (right * offset)
 
         line_h = DB.Line.CreateBound(p1, p2)
         line_v = DB.Line.CreateBound(p3, p4)
