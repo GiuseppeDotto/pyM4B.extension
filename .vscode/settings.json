@@ -1,0 +1,21 @@
+{
+  "python.analysis.autoFormatStrings": true,
+  "editor.formatOnSave": true,
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.defaultColorDecorators": "never",
+    "editor.wordBasedSuggestions": "off",
+    "editor.defaultFormatter": "ms-python.black-formatter"
+    // "editor.formatOnType": true,
+  },
+  "python.analysis.extraPaths": [
+    "./.vscode/stubs",
+    "./lib",
+    "C:\\Users\\gdotto\\AppData\\Roaming\\pyOMA\\pyrevitlib"
+  ],
+  "python.autoComplete.extraPaths": [
+    "./.vscode/stubs",
+    "./lib",
+    "C:\\Users\\gdotto\\AppData\\Roaming\\pyOMA\\pyrevitlib"
+  ]
+}
